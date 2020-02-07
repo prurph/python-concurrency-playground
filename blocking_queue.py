@@ -8,30 +8,30 @@ class BlockingQueue:
         self.curr_size = 0
         self.queue = []
         self.cond = Condition()
-    
-    def enqueue(self, val):
+
+    def enqueue(self, item):
         self.cond.acquire()
         while self.curr_size >= self.max_size:
             self.cond.wait()
 
-        self.queue.append(val)
+        self.queue.append(item)
         self.curr_size += 1
-        self.cond.notify_all() 
+        self.cond.notify_all()
         self.cond.release()
 
     def dequeue(self):
         self.cond.acquire()
         while self.curr_size == 0:
             self.cond.wait()
-        
-        val = self.queue.pop()
+
+        item = self.queue.pop(0)
         self.curr_size -= 1
         self.cond.notify_all()
         self.cond.release()
-        return val
+        return item
 
     @property
-    def is_full(self): 
+    def is_full(self):
         return self.curr_size >= self.max_size
 
 def consumer_thread(queue):
@@ -59,7 +59,7 @@ def main():
     Thread(name="Producer-1", target=producer_thread, args=(queue,), daemon=True).start()
     Thread(name="Producer-2", target=producer_thread, args=(queue,), daemon=True).start()
     Thread(name="QMonitor-1", target=queue_monitor, args=(queue,), daemon=True).start()
-    
+
     time.sleep(30)
 
 if __name__ == "__main__":
