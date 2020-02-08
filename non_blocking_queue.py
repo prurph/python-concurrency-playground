@@ -46,12 +46,15 @@ class NonBlockingQueue:
         return {
             "avail_cap": self.max_size - len(self.queue),
             "waiting_puts": len(self.waiting_enq),
-            "waiting_gets": len(self.waiting_deq)
+            "waiting_gets": len(self.waiting_deq),
         }
 
 
 def retry_deq(future):
-    print(f"[{current_thread().getName()}@{time.strftime('%T')}] executed retry_deq, dequeued: {future.result()}")
+    print(
+        f"[{current_thread().getName()}@{time.strftime('%T')}] executed retry_deq, dequeued: {future.result()}"
+    )
+
 
 def consumer_thread(queue, cadence_range):
     while True:
@@ -59,8 +62,11 @@ def consumer_thread(queue, cadence_range):
         if item is None:
             future.add_done_callback(retry_deq)
         else:
-            print(f"[{current_thread().getName()}@{time.strftime('%T')}] dequeued: {item}")
+            print(
+                f"[{current_thread().getName()}@{time.strftime('%T')}] dequeued: {item}"
+            )
         time.sleep(random.choice(cadence_range))
+
 
 def retry_enq(future):
     print(f"[{current_thread().getName()}@{time.strftime('%T')}] retry_enq invoked")
@@ -72,13 +78,17 @@ def retry_enq(future):
         retry_fut.queue = queue
         retry_fut.add_done_callback(retry_enq)
     else:
-        print(f"[{current_thread().getName()}@{time.strftime('%T')}] executed retry_enq: enqueued: {item}")
+        print(
+            f"[{current_thread().getName()}@{time.strftime('%T')}] executed retry_enq: enqueued: {item}"
+        )
+
 
 def producer_thread(queue, cadence_range):
-    while (item := random.choice(["🍉", "🍒", "🥭", "🍎", "🍏"])):
+    while (item := random.choice(["🍉", "🍒", "🥭", "🍎", "🍏"])) :
         queue.enqueue(item)
         print(f"[{current_thread().getName()}@{time.strftime('%T')}] enqueued {item}")
         time.sleep(random.choice(cadence_range))
+
 
 def queue_monitor(queue):
     while True:
@@ -88,8 +98,18 @@ def queue_monitor(queue):
 
 if __name__ == "__main__":
     queue = NonBlockingQueue(5)
-    Thread(name="Consumer-1", target=consumer_thread, args=(queue, range(3, 4)), daemon=True).start()
-    Thread(name="Producer-1", target=producer_thread, args=(queue, range(1, 2)), daemon=True).start()
+    Thread(
+        name="Consumer-1",
+        target=consumer_thread,
+        args=(queue, range(3, 4)),
+        daemon=True,
+    ).start()
+    Thread(
+        name="Producer-1",
+        target=producer_thread,
+        args=(queue, range(1, 2)),
+        daemon=True,
+    ).start()
     Thread(name="QMonitor-1", target=queue_monitor, args=(queue,), daemon=True).start()
 
     time.sleep(30)
